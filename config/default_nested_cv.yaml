@@ -1,0 +1,249 @@
+################################################################################
+# Basic Settings
+################################################################################
+
+# Number of folds to split the data into (default 5), must be greater than 1
+n_folds:
+  inner: 5
+  outer: 5
+
+# Scoring
+# List of metrics to use when scoring
+# format as list even with one item
+# options are currently only [ defualt ] or [ multi ]
+# automatically adjusts based on n_classes=2 or n_classes>2
+# Recommended leave as 'default' as multiple metrics slow things down a lot
+scoring_settings:
+  xgb:
+    scoring: [multi]
+    refit: f1 #dont format as a list??
+  svm:
+    scoring: [multi]
+    refit: f1 #dont format as a list??
+  ann:
+    scoring: [multi] #[default]
+    refit: f1 #[default]
+
+# Resource/backend settings; explanation of each setting below
+# the one to be used needs to be named "resource_settings"
+# I have some extra testing settings
+
+# 25mer settings
+25mer_resource_settings:
+  xgb:
+    exhaustive: False
+    rand_n_iter: 2 # Only used if exhaustive: False
+    dask: False
+    n_jobs: 2
+    pre_dispatch: 2 # Only used if dask: False
+  svm:
+    exhaustive: True
+    rand_n_iter: 0 # Only used if exhaustive: False
+    dask: True
+    n_jobs: 32
+    pre_dispatch: 16 # Only used if dask: False
+  ann:
+    exhaustive: False # ANN is slow, better to use randomized
+    rand_n_iter: 50 # Only used if exhaustive: False
+    dask: False # Dask DOES NOT WORK with keras neural nets at the moment
+    n_jobs: 16
+    pre_dispatch: 8
+
+
+# 11mer settings
+resource_settings:
+  xgb:
+    exhaustive: True # can't use randomized (False) for some reason again
+    rand_n_iter: 0 # Only used if exhaustive: False
+    dask: False
+    n_jobs: 32
+    pre_dispatch: 16 # Only used if dask: False
+  svm:
+    exhaustive: True
+    rand_n_iter: 0 # Only used if exhaustive: False
+    dask: False #True - doesnt worka anymore????
+    n_jobs: 32
+    pre_dispatch: 16 # Only used if dask: False
+  ann:
+    exhaustive: True #False # ANN is slow, better to use randomized
+    rand_n_iter: 50 # Only used if exhaustive: False
+    dask: False # Dask DOES NOT WORK with keras neural nets at the moment
+    n_jobs: 8 #16
+    pre_dispatch: 4 #8
+
+# exhaustive
+# - Whether to use exhaustive GridSearchCV (True) or RandomizedSearchCV (False)
+# - If False, then ran_n_iter must also be specified
+# - If using False/RandomizedSearchCV then the grids can also be distributions
+# - scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html
+
+# rand_n_iter
+# - Only used if using RandomizedSearchCV
+# - Must be set if using RandomizedSearchCV
+# - This is the number of parameter settings that are sampled from the
+#   parameter grid in RandomizedSearchCV
+# - Higher rand_n_iter will improve quality, but increase runtime
+# - The total number of models trained will be n_iter*n_folds_inner_cv
+#     - eg 10 n_iter * 5 = 50 models total trained
+#     - Would like to sample the same amount of points as with XGB, SVM;
+#       but ANN runtime is much longer
+
+# dask
+# - Whether to use the dask joblib backend (True) or default loky (False)
+# - dask appears to have a speedup for XGB and SVM, so recommend it for those
+# - Dask does not currently work with ANN
+# - If dask is True, pre_dispatch is ignored
+
+# n_jobs & pre_dispatch
+# - stackoverflow.com/questions/32673579/scikit-learn-general-question-about-parallel-computing
+# - n_jobs must be set to <= the number of cores provided
+# - for 11mers, jobs=32 pre=16 worked well for XGB & SVM; jobs=16 pre=8
+
+
+
+
+########
+# Notes
+
+# 11mers - exhaustive GridSearchCV - worked perfectly
+#   n_jobs: 32, pre_dispatch: 16, waffles 32 cores, 500G mem
+#   after switching to dask, took 32:44min and used 152.25G mem
+#   don't remember how long it took before, 45min? or how much mem
+
+# 11mers - exhaustive RandomizedSearchCV
+#   n_jobs: 16, pre_dispatch: 6, waffles 32 cores, 500G mem
+#   after switching to dask, took 32:44min and used 152.25G mem
+#   don't remember how long it took before, 45min? or how much mem
+
+
+# With RandomizedSearchCV, n_jobs larger than 1 might cause errors?
+# Should check if exhaustive GridSearchCV runs ok with n_jobs>1
+# https://github.com/scikit-learn-contrib/skope-rules/issues/18
+
+
+
+
+################################################################################
+# Parameter Grid
+# ANN - Parameter Grids for GridSearchCV / RandomizedSearchCV
+################################################################################
+
+
+ann:
+  # model.fit
+  epochs: 100 #100 # 100 is somewhat high BUT this is maximum, the EarlyStopping should prevent overfitting
+  # Num passed through the net at a time
+  batch_size: 6000 # default 6000? Ideally a value >= than the number of input genomes
+  # Used by callbacks
+  patience: 16 # 10; typically 0 to 10; EarlyStopping & ReduceLROnPlateau
+  # Number of hidden layers to try, options currently only between 0 and 4
+  n_hidden_layers: [0,1] # [0,1,2,3,4]
+  # number of neurons per layer to try is currently hardcoded as
+  #   nn = [n_classes, n_feats*0.25, n_feats*0.5, n_feats, n_feats*1.5]
+  # Layer Params
+  model__activation: [relu,sigmoid] # [relu, sigmoid]
+  model__dropout: [0,0.5] # [0,0.2,0.5,0.8,1]
+
+#ann:
+ann_prev:
+  # model.fit
+  epochs: 100 # 100 is somewhat high BUT this is maximum, the EarlyStopping should prevent overfitting
+  # Num passed through the net at a time
+  batch_size: 6000 # default 6000? Ideally a value >= than the number of input genomes
+  # Used by callbacks
+  patience: 10 # 10; typically 0 to 10; EarlyStopping & ReduceLROnPlateau
+  # Number of hidden layers to try, options currently only between 0 and 4
+  n_hidden_layers: [0,1,2] # [0,1,2,3,4]
+    # number of neurons per layer to try is currently hardcoded as
+    #   nn = [n_classes, n_feats*0.25, n_feats*0.5, n_feats, n_feats*1.5]
+  # Layer Params
+  #model__activation_in: [relu]
+  model__activation: [relu,sigmoid] # [relu, sigmoid]
+  model__dropout: [0,0.2,0.5] # [0,0.2,0.5,0.8], range is [0,1)
+  # hardcoded/cannot change:
+  #   - number of intitial neurons is always = num feats
+  #   - depends on the number of classes:
+  #        - num of output layer neurons
+  #        - output activation
+  #        - loss
+
+  #model__learn_rate: [0.001, 0.01, 0.1, 0.2, 0.3]
+  #model__momentum: [0.0, 0.2, 0.4, 0.6, 0.8, 0.9]
+  #model__init_mode: ['uniform', 'lecun_uniform', 'normal', 'zero', 'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform']
+
+# Patience:
+# - Num of epochs with no improvement after which training will be stopped
+# - Typically between 0 & 10.
+
+#Batch Size:
+# - towardsdatascience.com/a-guide-to-an-efficient-way-to-build-neural-network-architectures-part-i-hyper-parameter-8129009f131b
+#   "number of patterns shown to the network before the weight matrix is
+#    updated. smaller batch size = patterns less repeating and hence
+#    the weights would be all over the place and convergence would become
+#    difficult. higher batch size = learning would become slow as only after
+#    many iterations will the batch size change. It is recommend to try out
+#    batch sizes in powers of 2 (for better memory optimization) based on the
+#    data-size."
+
+# PARAMETERS BEST LEFT AS DEFAULT; not currently alterable from here
+# Loss:
+# - Whole list is here https://keras.io/api/losses/; not all are appropriate
+# - Default is categorical_crossentropy
+# - We had used poisson before, but I think it's better to use this default now
+#    - I think poisson is more for stuff that happens over an interval
+#    - https://neptune.ai/blog/keras-loss-functions
+# - site has some explanation of it machinelearningmastery.com/how-to-choose-loss-functions-when-training-deep-learning-neural-networks/
+# Optimizer:
+# - adam generally considered to be the best
+
+################################################################################
+# Parameter Grid
+# XGB/XGBoost & SVM - Parameter Grids for GridSearchCV / RandomizedSearchCV
+################################################################################
+# Each parameter needs to be prefixed with either selector or model.
+# (selector being SelectKBest and the model being svm or xgb etc)
+
+# Do NOT define selecor__k down here unless you are running the .py separately
+# (NOT through the snakemake!) and are willing to wait an extra long time. It is
+# better to define the number of features wanted above so the snakemake will
+# submit them as separate jobs.
+
+
+# scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+svm:
+  #selector__k: [ ]
+  model__C: [ 1, 10, 100 ]
+  model__kernel: [ linear, rbf ]
+  model__gamma: [ 1, 0.1, 0.01, 0.001, scale ]
+# model__kernel: [ linear, rbf, sigmoid, poly ]
+
+
+# xgboost.readthedocs.io/en/latest/parameter.html
+# xgboost.readthedocs.io/en/latest/tutorials/param_tuning.html
+xgb:
+  #selector__k: [ ]
+  model__booster: [ gbtree ] # default=gbtree
+  #### Don't optimize; higher=better, at cost of inc time & resources
+  model__n_estimators: [ 100 ] # default=100?
+  #### Control Overfitting - controlling model complexity
+  model__max_depth: [ 4, 5, 6, 7 ] # default=6; range [0,inf]
+  model__min_child_weight: [ 1, 5, 10] # default=1; range [0,inf]
+  #model__gamma: [ 0, 0.5, 1] # default=0; range [0,inf]
+  #### Control Overfitting - add randomness to make training robust to noise
+  # lower generally better, but takes longer to train, probably dont need to
+  # optimize this, just set
+  model__learning_rate: [0.1, 0.3, 0.5, 1 ] #aka eta default=0.3; range=[0,1]
+  #model__subsample: [ 0.6, 0.8, 1] #default=1; range(0,1]
+
+future_xgb:
+  #selector__k: [ ]
+  model__booster: [ gbtree ] # default=gbtree
+  #### Don't optimize; higher=better, at cost of inc time & resources
+  model__n_estimators: [ 100 ] # default=100?
+  #### Control Overfitting - controlling model complexity
+  model__max_depth: [ 4, 6, 8, 10 ] # default=6; range [0,inf]
+  model__min_child_weight: [ 0.5, 1 ] #[ 1, 5, 7, 10] # default=1; range [0,inf]
+  model__gamma: [ 0, 0.5, 1] # default=0; range [0,inf]
+  #### Control Overfitting - add randomness to make training robust to noise
+  model__learning_rate:  [ 0.3 ] #aka eta default=0.3; range=[0,1]
+  model__subsample: [ 0.1, 0.5, 1] #default=1; range(0,1]

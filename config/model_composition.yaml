@@ -1,0 +1,62 @@
+################################################################################
+# Define the models to be created
+################################################################################
+
+################################################################################
+# Format template:
+# The model name will be used for paths/files/saving.
+
+# <model name>:
+#    data_column:     <name of the column in the metadata master file to
+#                      filter for the desired criteria; the case of this name
+#                      MUST match the case in the metadata file>
+#    data_criteria:   [<list of criteria terms to use for inclusion of samples>]
+#    model_types:     [<list of types of models to make, options are XGB and SVM
+#                       currently; ANN switchover to this method in progress>]
+#    predict_for:     [<list of things to create models for>
+#                     *putting just "SIR" in this list will include
+#                      SIR for all drugs in the next enty (below)
+#    drugs:           [<list of 3letter drug codes to make models for>]
+#    num_feats:       [<list of ints>]
+#                     * Number of features to use for model creation (by
+#                       SelectKBest). Each number is run with the param grid
+#                       SEPARATELY, not as a parameter in the grid, as it would
+#                       add a lot of time to the run; it's easier to parallelize
+#                       each number of features using snakemake than to rework
+#                       the .py for parallel. Format as a list even if only one
+#                       number is present. 0 means use all features.
+#    num_top_feats:   number of top feats to extract from trained xgb models
+################################################################################
+
+
+# 11-mer models; incl. param tuning
+munchkin:
+    kmer_len: [ 11 ]
+    param_tuning: True
+    data_column: collection
+    data_criteria: [ CIPARS, BCRC, ENA, NCBI, PATRIC, AAFC ]
+    model_types:  [ XGB, SVM, ANN ] #[ XGB, SVM, ANN ]
+    predict_for: [ SIR ] #[ SIR, origin, clade ]
+    num_feats: [ 100, 500, 1000, 2000, 3000, 4000, 5000 ] # [ 100, 500, 1000, 2000, 3000, 4000, 5000 ]
+    num_top_feats: 10
+    drugs: [ AMC, AMP, AMX, AZT,
+             CET, CFZ, CHL, CIP, CPM, CRO, CST, CTX, CTZ, CXA, CXM,
+             EFX, ETP, FFC, FOX, GEN, IMP, KAN, LVX, MER, NAL, NIT,
+             SAM, SOX, STR, SXT,
+             TBM, TET, TGC, TIO, TMP, TZP ] # 36 antimicrobials
+
+# 25-mer models, used sparse matrix to help with RAM
+raisin:
+  kmer_len: 25
+  param_tuning: False
+  data_column: collection
+  data_criteria: [ CIPARS, BCRC, ENA, NCBI, PATRIC, AAFC ]
+  model_types:  [ XGB, SVM, ANN ] #[ XGB, SVM, ANN ]
+  predict_for: [ SIR ] #[ SIR, clade, origin ] #source??
+  num_feats: [ 1000 ]
+  num_top_feats: 10
+  drugs: [ AMC, AMP, AMX, AZT,
+           CET, CFZ, CHL, CIP, CPM, CRO, CST, CTX, CTZ, CXA, CXM,
+           EFX, ETP, FFC, FOX, GEN, IMP, KAN, LVX, MER, NAL, NIT,
+           SAM, SOX, STR, SXT,
+           TBM, TET, TGC, TIO, TMP, TZP ]

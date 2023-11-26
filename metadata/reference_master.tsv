@@ -1,0 +1,39 @@
+id_2	id	dataset	bioproject	refseq_accession	species	biosample	genbank	refseq	assembly_level	refseq_category	pathogen_status	notes
+	salmonella	REF-SALM	PRJNA241									
+	k21	REF-ECOLI	PRJNA57779									
+	o157h7_1	REF-ECOLI	PRJNA226									
+	o157h7_2	REF-ECOLI	PRJNA322195	GCF_001651945.2								
+	o25h4_1	REF-ECOLI	PRJNA316859									
+	o25h4_2	REF-ECOLI	PRJEA61443									
+	o2h6	REF-ECOLI	PRJNA560883	GCF_008124085.1								
+	k_pneumoniae	REF-META	PRJNA84387									
+	c_jejuni	REF-META	PRJNA57587									
+	l_monocytogenes	REF-META	PRJNA61583									
+	b_cereus	REF-META	PRJNA509739									
+	c_diff	REF-META	PRJEB7371									
+b_fragilis	SAMN11040710	REF-M			Bacteroides fragilis	SAMN11040710	GCA_001286525.1	GCF_001286525.1	complete	representative genome		
+c_perfringens	SAMN02604008	REF-M			Clostridium perfringens ATCC 13124 (firmicutes)	SAMN02604008	GCA_000013285.1	GCF_000013285.1	complete	representative genome		
+f_prausnitzii	SAMN08494074	REF-M			Faecalibacterium prausnitzii (firmicutes)	SAMN08494074	GCA_003312465.1	GCF_003312465.1	complete	representative genome		
+r_ albus	SAMN00016988	REF-M			Ruminococcus albus 7 = DSM 20455 (firmicutes)	SAMN00016988	GCA_000179635.2	GCF_000179635.2	complete	representative genome		
+r_cellulolyticum	SAMN00623037	REF-M			Ruminiclostridium cellulolyticum H10 (firmicutes)	SAMN00623037	GCA_000022065.1	GCF_000022065.1	complete	representative genome		
+p_ruminicola	SAMN02604020	REF-M			Prevotella ruminicola	SAMN02604020	GCA_000025925.1	GCF_000025925.1	complete	representative genome		
+b_producta	SAMN11357168	REF-M			Blautia producta (firmicutes)	SAMN11357168	GCA_014131715.1	GCF_014131715.1	complete	representative genome		
+a_finegoldii	SAMN02232007	REF-M			Alistipes finegoldii DSM 17242 (CFB group bacteria)	SAMN02232007	GCA_000265365.1	GCF_000265365.1	complete	representative genome		
+l_phytofermentans	SAMN02598360	REF-M			Lachnoclostridium phytofermentans ISDg (firmicutes)	SAMN02598360	GCA_000018685.1	GCF_000018685.1	complete	representative genome		
+a_megaguti	SAMEA4983370	REF-M			Alistipes megaguti (CFB group bacteria)	SAMEA4983370	GCA_900604385.1	GCF_900604385.1	complete	representative genome		
+p_faecium	SAMD00143386	REF-M			Phascolarctobacterium faecium (firmicutes)	SAMD00143386	GCA_003945365.1	GCF_003945365.1	complete	representative genome		
+p_ distasonis	SAMN11056474	REF-M			Parabacteroides distasonis (CFB group bacteria)	SAMN11056474	GCA_013267615.1	GCF_013267615.1	complete	representative genome		
+r_intestinalis	SAMEA4878606	REF-M			Roseburia intestinalis L1-82 (firmicutes)	SAMEA4878606	GCA_900537995.1	GCF_900537995.1	complete	representative genome		
+l_paragasseri	SAMD00113349	REF-M			Lactobacillus paragasseri (firmicutes)	SAMD00113349	GCA_003584685.1	GCF_003584685.1	complete	representative genome		
+S_enterica	SAMN02604315	REF-TREE	PRJNA241		Salmonella enterica subsp. enterica serovar Typhimurium str. LT2	SAMN02604315	GCA_000006945.2	GCF_000006945.2	complete	reference genome		
+K12_MG1655	SAMN02604091	REF-TREE	PRJNA225		Escherichia coli str. K-12 substr. MG1655	SAMN02604091	GCA_000005845.2	GCF_000005845.2	complete	reference genome	non-pathogenic	type strain
+O157H7_Sakai	SAMN01911278	REF-TREE	PRJNA226		Escherichia coli O157:H7 str. Sakai	SAMN01911278	GCA_000008865.2	GCF_000008865.2	complete	reference genome	STEC	
+ATCC11775	SAMN10252913	REF-TREE	PRJNA472652		Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775 (E. coli)	SAMN10252913	GCA_003697165.2	GCF_003697165.2	complete	n/a	non-pathogenic	type strain
+O104H4	SAMN00765209	REF-TREE	PRJNA67929		Escherichia coli O104:H4 str. H112180280	SAMN00765209	GCA_000217975.2 	GCF_000217975.1 	scaffold	n/a	"EAEC, HUS, STEC"	2011 german outbreak
+O121H19	SAMN07339706	REF-TREE	PRJNA393703		Escherichia coli O121:H19 (E. coli)	SAMN07339706	GCA_002844165.1	GCF_002844165.1	complete	n/a	STEC	canadian genome from NML; canadian outbreaks: https://www.canada.ca/en/public-health/services/reports-publications/canada-communicable-disease-report-ccdr/monthly-issue/2017-43/ccdr-volume-43-7-8-july-6-2017/outbreak-shiga-toxin-producing-escherichia-coli-o121-infections-associated-with-flour.html
+O2H6	SAMN12603272	REF-TREE	PRJNA560883		Escherichia coli O2:H6 (E. coli)	SAMN12603272	GCA_008124085.1 	GCF_008124085.1 	complete	n/a	"intestinal and UPEC, STEC"	canadian genome from NML; pathogen https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3958309/
+O25H4	SAMN16520835	REF-TREE	PRJNA670813		Escherichia coli O25b:H4-ST131 (E. coli)	SAMN16520835	GCA_015277555.1	GCF_015277555.1	complete	n/a	"pathogen, ST131, ESBL"	https://experts.umn.edu/en/publications/intercontinental-emergence-of-escherichia-coli-clone-o25h4-st131-
+	E_albertii	REF-E-OTHER					GCA_001549955.1	GCF_001549955.1	complete	reference genome		
+	E_fergusonii	REF-E-OTHER					GCA_013892435.1	GCF_013892435.1	complete	reference genome		
+	E_marmotae	REF-E-OTHER					GCA_900637015.1	GCF_900637015.1	complete	reference genome		
+												

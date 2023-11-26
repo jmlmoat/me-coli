@@ -1,0 +1,296 @@
+################################################################################
+# Paths to other tools; ensure abspath
+################################################################################
+# Where kSNP3 is installed
+ksnp3_path: ~/kSNP3.1_Linux_package/kSNP3
+#ksnp3_path: ~/kSNP3.021_Linux_package/kSNP3
+
+# Where ClermonTyping is installed
+#ct_path: ~/ClermonTyping-master/clermonTyping.sh
+ct_path: ~/ClermonTyping/clermonTyping.sh
+
+# Where CAMISIM is installed
+#camisim_path: ~/projects/CAMISIM/metagenomesimulation.py
+
+# Where the standard Kraken2 database is installed
+kraken_db_path: ~/kraken_db_std/ #~/kraken_db_bac/ #~/kraken_db_std/
+
+# Location of ResFinder
+resfinder_path: ~/resfinder_master/
+#resfinder_path: ~/resfinder/
+# Location of the ResFinder DB, or where you want it to be downloaded
+#resfinder_db_path: ~/resfinder_db/
+
+
+################################################################################
+# Used for everything
+################################################################################
+# metadata for all non-reference WGS data
+metadata_master: metadata/metadata_master.tsv
+#metadata_master: metadata/temp_thai.tsv
+
+# Individual reference genome metadata
+reference_master: metadata/reference_master.tsv
+
+# Metagenome metadata
+metagenome_master: metadata/metagenome_master.tsv
+
+# If making simulated metagenomic samples, where to find their params
+simulated_sample_configfile: config/upgraded_sample_test.yaml
+  #config/simulated_samples_fullsim_rand.yaml
+  #config/simulated_samples.yaml
+
+# Antibiotic metadata including name and class
+antibiotic_master: metadata/antibiotic_master.tsv
+
+#*******************************************************************************
+# ResFinder 4.0 metadata
+PRJNA6164: metadata/public/PRJNA6164_metadata.tsv
+PRJEB22091: metadata/public/PRJEB22091_metadata.tsv
+#*******************************************************************************
+
+# Options are "standard" or "kraken"
+wgs_type: standard # if standard then the 'data/genomes_asmbl/' is used for analysis
+# if kraken-filtered then 'data/genomes_kraken/'is used for analysis
+
+
+################################################################################
+# Raw genome information
+################################################################################
+
+# All genomes must be already included in the metadata_master.
+
+# If externally obtained datasets are being used (eg CIPARS or BCRC), then do
+#   not place the original files into the genomes_raw folder. Instead, specify
+#   the name of the dataset and the path to the original raw genomes here.
+#   Files should be paired end fastq files labelled with their id and contained
+#   in a subfolder labelled with their id (eg id/id_1.fastq and id/id_2.fastq).
+#external_datasets:
+#  BCRC: ../BCRC_E_coli_RZ/
+#  CIPARS: ../AMR_GRDI_E_coli_CIPARS/
+
+external_datasets:
+  BCRC:
+    raw_path: ../BCRC_E_coli_RZ/
+    file_ext: fasta
+  CIPARS:
+    raw_path: ../AMR_GRDI_E_coli_CIPARS/
+    file_ext: fasta
+
+################################################################################
+# kSNP tree settings
+################################################################################
+
+# use kmers present in at least min_frac percent of the genomes; smaller=slower?
+ksnp_min_frac: 0.75
+ksnp_cpus: 20
+# may want to use a different length (kchooser recommended 25 for my data)
+# kchooser is in tree_ksnp.smk but currently isn't called because it does take
+# quite a while to run (though only needs to run once per group)
+ksnp_kmer_len: 25 #31
+
+################################################################################
+# Matrix & Model Creation
+################################################################################
+# Specify length of kmer; must be an odd number; recommended 11, 23, 31
+# A larger kmer size means higher resource requirements
+# default = 11
+kmer_size: 11
+kmer_len_preprocessing: 11
+
+# Data type for storing the kmer matrix
+# default uint8; note uint8 has max kmercount of 256;
+# a larger dtype will likely cause memory issues
+#*******************************************************************************
+# Currently this default cannot be changed
+# hard coded in matrix_chunks.py, along with the 256 check in its fn make_row()
+kmer_matrix_dtype: uint8
+
+
+
+# Define each set of models to be created
+model_composition_configfile: config/model_composition.yaml
+
+# models to run
+# they are defined in the model_composition_configfile
+model_names: [ munchkin ]
+
+
+
+
+# Whether or not to use nested cross validation for parameter tuning
+parameter_tuning: True # ******************** Currently True is only option
+# If param tuning is True, then provide the param configfile for paramater
+# tuning using nested cross validation
+# default config/default_nested_cv.yaml
+param_grid_configfile: config/default_nested_cv.yaml
+# If paramater_tuning is Flase, provide the set parameters
+# default config/default_fixed_params.yaml
+param_fixed_configfile: config/default_single_cv.yaml
+
+
+
+# Currently used by a number of .smks, probably should change at some point
+#drugs_we_care_about: [ AMC, AMP, AMX,
+#                       CET, CHL, CIP, CRO, CTZ, CTX, CXM,
+#                       EFX, FOX, FFC, GEN, KAN, NAL,
+#                       SOX, STR, SXT,
+#                       TBM, TMP, TET, TIO, TZP]
+drugs_we_care_about: [ AMC, AMP, AMX, AZT,
+         CET, CFZ, CHL, CIP, CPM, CRO, CST, CTX, CTZ, CXA, CXM,
+         EFX, ETP, FFC, FOX, GEN, IMP, KAN, LVX, MER, NAL, NIT,
+         SAM, SOX, STR, SXT,
+         TBM, TET, TGC, TIO, TMP, TZP ] # 36 antimicrobials
+#[ AMC, AMK, AMP, AMX, AZT,
+#CET, CFZ, CHL, CIP, CPM, CRO, CST, CTX, CTZ, CXA, CXM,
+#EFX, ETP, FFC, FOX, GEN, IMP, KAN, LVX, MER, NAL, NIT,
+#SAM, SOX, STR, SXT,
+#TBM, TET, TGC, TIO, TMP, TZP ]
+
+
+# *************************************************************************
+# Following chunks were separated into the model_composition.yaml config
+
+# Number of top features to extract from trained XGB models
+# If value is higher than the num of non-zero impt feats,
+# then the num of non-zero feats will be used
+# default = 10
+#num_top_feats: 10
+
+# List of models to be created, by group.
+# The column for the entry is auto-detected; it is recommended to use a group
+# from within one of these columns: [country, dataset, collection, source_bin].
+# "ALL" will use all data
+# MUST pass as a list even if only one item eg [ ALL ]
+#training_list: [ all ]
+#training_list: [ thai ]
+
+# If wanting to make a model with one dataset and then predict on another,
+# create a list of [ train_on, predict_on ].
+# The column for the entry is auto-detected; it is recommended to use a group
+# from within one of these columns: [country, dataset, collection, source_bin].
+# "ALL" will use all data
+#train_pred_pairs: [
+#    [ Thailand, Canada ],
+#    ]
+
+# Type of model to run; MUST pass as a list even if only one item eg [SVM]
+# default = [ XGB, SVM, ANN]
+#model_types: [ XGB, SVM ] #[ XGB, SVM ]
+#model_types: [ XGB, SVM ]
+
+# List of things to predict on; names of columns in the metadata master
+# putting just "SIR" in this list will include SIR for all drugs below
+#predict_for: [ SIR, clade ] #[ SIR, clade ] #[ SIR ] #[SIRAMP,country]
+# drugs to predict on; required if SIR specified above
+#prediction_drugs: [ AMC, AMP, AMX,
+#                    CET, CHL, CIP, CRO, CTZ, CTX, CXM,
+#                    EFX, FOX, FFC, GEN, KAN, NAL,
+#                    SOX, STR, SXT,
+#                    TBM, TMP, TET, TIO, TZP]
+# *************************************************************************
+
+# *************************************************************************
+# Following chunks no longer used; keeping temporarily
+
+# List of all of the drugs, some cant be predicted on eg CTC has like 2 whole
+# values, and AZM is totally susceptible
+#all_drugs: [ AMC, AMP, AMX, AZM,
+#             CET, CHL, CIP, CRO, CTZ, CTC, CTX, CXM,
+#             EFX, FFC, FOS, FOX,
+#             GEN, KAN, NAL, NMC, OTC,
+#             SOX, STR, SXT,
+#             TBM, TMP, TET, TIO, TZP ]
+
+# Full names of the drugs; used for automating graph labels
+#drug_names:
+#  AMC: Co-amoxiclav
+#  AMP: Ampicillin
+#  AMX: Amoxicillin
+#  AZM: Azithromycin
+#  CET: Cephalothin
+#  CHL: Chloramphenicol
+#  CIP: Ciprofloxacin
+#  CRO: Ceftriaxone
+#  CTZ: Ceftazidime
+#  CTC: Ceftazidime/Clavulanic Acid
+#  CTX: Cefotaxime
+#  CXM: Cefuroxime
+#  EFX: Enrofloxacin
+#  FOX: Cefoxitin
+#  FOS: Fosfomycin
+#  FFC: Florfenicol
+#  GEN: Gentamicin
+#  KAN: Kanamycin
+#  NAL: Nalidixic Acid
+#  NMC: Neomycin
+#  OTC: Oxytetracycline
+#  SOX: Sulfisoxazole
+#  STR: Streptomycin
+#  SXT: Co-trimoxazole
+#  TBM: Tobramycin
+#  TMP: Trimethoprim
+#  TET: Tetracyline
+#  TIO: Ceftiofur
+#  TZP: Piperacillin/Tazobactam
+
+# groupings defined as per https://ncithesaurus.nci.nih.gov/ncitbrowser/
+# and https://www.merckvetmanual.com/ (latter for the phenicols & fosfomycin)
+#drug_groups:
+#  beta_lactam:
+#    penicillin: [ AMC, AMP, AMX, TZP ]
+#    cephalosporin: [ CET, CRO, CTZ, CTC, CTX, CXM, TIO, FOX]
+      #first_gen: [ CET ]
+      #second_gen: [ CXM ]
+      #third_gen: [ CRO, CTZ, CTC, CTX, TIO, FOX ]
+#    combination: [ AMC, TZP ]
+
+#  non_beta_lactam:
+#    macrolide: [ AZM ]
+        #azalide: [ AZM ]
+#    aminoglycoside: [ GEN, KAN, STR, TBM, NMC ]
+#    sulfonamide: [ SOX, SXT ]
+#    tetracycline: [ TET, OTC ]
+#    quinolone: [ CIP, EFX, NAL ]
+      #fluoroquinolone: [ CIP, EFX ]
+      #synthetic: [ NAL ]
+#    phenicol: [ CHL, FFC ] # same mechanism of action
+#    misc: [ FOS, TMP ]
+#    combination: [ SXT ]
+# *************************************************************************
+
+
+################################################################################
+# MIC dictionary - only used by plot_metadata.py currently
+# Maybe move into the antibiotic master file
+################################################################################
+
+drug_class_ranges:
+  AMC: ['<=1', 2, 4, 8, 16, '>=32' ]
+  AMP: ['<=1', 2, 4, 8, 16, '>=32' ]
+  AMX:
+  AZM: ['<=1', 2, 4, 8, '>=16' ]
+  CET:
+  CHL: ['<=2', 4, 8, 16, '>=32' ]
+  CIP: ['<=0.015', 0.03, 0.06, 0.12, 0.25, 0.5, 1, 2, '>=4' ] # metadata only goes up to =1
+  CRO: ['<=0.25', 0.5, 1, 2, 4, 8, 16, 32, '>=64' ]
+  CTZ:
+  CTC:
+  CTX:
+  CXM:
+  FOX: ['<=0.5', 1, 2, 4, 8, 16, '>=32' ]
+  GEN: ['<=0.25', 0.5, 1, 2, 4, 8, '>=16' ]
+  KAN: ['<=8', 16, 32, '>=64' ]
+  NAL: ['<=0.5', 1, 2, 4, 8, 16, '>=32' ]
+  SOX: ['<=16', 32, 64, 128, '>=256' ]
+  STR: ['<=32', '>=64' ]
+  SXT: ['<=0.12', 0.25, 0.5, 1, 2, '>=4' ]
+  TBM:
+  TMP:
+  TET: ['<=4', 8, 16, '>=32' ]
+  TIO: ['<=0.12',0.25, 0.5, 1, 2, 4, '>=8' ]
+  TZP:
+  OTC:
+  FFC:
+  EFX:
+  NMC:

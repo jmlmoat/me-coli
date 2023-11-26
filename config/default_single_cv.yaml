@@ -1,0 +1,173 @@
+################################################################################
+# Basic Settings
+################################################################################
+
+# num folds for cross validate
+n_folds: 5
+# note that im keeping the minimum number as n_folds*n_folds
+# number below that will be binned
+
+n_feats: 1000
+
+# Scoring
+# List of metrics to use when scoring
+# format as list even with one item
+# options are currently only [ defualt ] or [ multi ]
+# automatically adjusts based on n_classes=2 or n_classes>2
+# Recommended leave as 'default' as multiple metrics slow things down a lot
+scoring_settings:
+  xgb:
+    scoring: [multi]
+    refit: f1 #[f1]
+  svm:
+    scoring: [multi] #[default]
+    refit: f1 #[default]
+  ann:
+    scoring: [multi] #[default]
+    refit: f1 #[default]
+
+
+
+
+# 25mer settings
+# currently dask is not set up
+resource_settings:
+  xgb:
+    dask: False
+    n_jobs: 1 #16
+    pre_dispatch: 1 #8 # Only used if dask: False
+  svm:
+    dask: False
+    n_jobs: 1 #16
+    pre_dispatch: 1 #8 # Only used if dask: False
+  ann:
+    dask: False # Dask DOES NOT WORK with keras neural nets at the moment
+    n_jobs: 1 #16
+    pre_dispatch: 1 #8
+
+
+
+
+
+# exhaustive
+# - Whether to use exhaustive GridSearchCV (True) or RandomizedSearchCV (False)
+# - If False, then ran_n_iter must also be specified
+# - If using False/RandomizedSearchCV then the grids can also be distributions
+# - scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html
+
+# rand_n_iter
+# - Only used if using RandomizedSearchCV
+# - Must be set if using RandomizedSearchCV
+# - This is the number of parameter settings that are sampled from the
+#   parameter grid in RandomizedSearchCV
+# - Higher rand_n_iter will improve quality, but increase runtime
+# - The total number of models trained will be n_iter*n_folds_inner_cv
+#     - eg 10 n_iter * 5 = 50 models total trained
+#     - Would like to sample the same amount of points as with XGB, SVM;
+#       but ANN runtime is much longer
+
+# dask
+# - Whether to use the dask joblib backend (True) or default loky (False)
+# - dask appears to have a speedup for XGB and SVM, so recommend it for those
+# - Dask does not currently work with ANN
+# - If dask is True, pre_dispatch is ignored
+
+# n_jobs & pre_dispatch
+# - stackoverflow.com/questions/32673579/scikit-learn-general-question-about-parallel-computing
+# - n_jobs must be set to <= the number of cores provided
+# - for 11mers, jobs=32 pre=16 worked well for XGB & SVM; jobs=16 pre=8
+
+
+
+
+########
+# Notes
+
+# 11mers - exhaustive GridSearchCV - worked perfectly
+#   n_jobs: 32, pre_dispatch: 16, waffles 32 cores, 500G mem
+#   after switching to dask, took 32:44min and used 152.25G mem
+#   don't remember how long it took before, 45min? or how much mem
+
+# 11mers - exhaustive RandomizedSearchCV
+#   n_jobs: 16, pre_dispatch: 6, waffles 32 cores, 500G mem
+#   after switching to dask, took 32:44min and used 152.25G mem
+#   don't remember how long it took before, 45min? or how much mem
+
+
+# With RandomizedSearchCV, n_jobs larger than 1 might cause errors?
+# Should check if exhaustive GridSearchCV runs ok with n_jobs>1
+# https://github.com/scikit-learn-contrib/skope-rules/issues/18
+
+
+
+
+################################################################################
+# Parameters
+################################################################################
+# Each parameter needs to be prefixed with either selector or model.
+# (selector being SelectKBest and the model being svm or xgb etc)
+
+# Do NOT define selecor__k down here unless you are running the .py separately
+# (NOT through the snakemake!) and are willing to wait an extra long time. It is
+# better to define the number of features wanted above so the snakemake will
+# submit them as separate jobs.
+
+ann:
+  # model.fit
+  epochs: 100 #100 # 100 is somewhat high BUT this is maximum, the EarlyStopping should prevent overfitting
+  # Num passed through the net at a time
+  batch_size: 6000 # default 6000? Ideally a value >= than the number of input genomes
+  # Used by callbacks
+  patience: 16 # 10; typically 0 to 10; EarlyStopping & ReduceLROnPlateau
+  # Number of hidden layers to try, options currently only between 0 and 4
+  n_hidden_layers: [1] # [0,1,2,3,4]
+  # number of neurons per layer to try is currently hardcoded as
+  #   nn = [n_classes, n_feats*0.25, n_feats*0.5, n_feats, n_feats*1.5]
+  # Layer Params
+  model__activation: [relu] # [relu, sigmoid]
+  model__dropout: [0.5] # [0,0.2,0.5,0.8,1]
+
+
+# scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+svm:
+  #selector__k: [ ]
+  model__C: 1
+  model__kernel: rbf
+  model__gamma: scale
+# model__kernel: [ linear, rbf, sigmoid, poly ]
+
+
+# xgboost.readthedocs.io/en/latest/parameter.html
+# xgboost.readthedocs.io/en/latest/tutorials/param_tuning.html
+#xgb:
+  #selector__k: [ ]
+#  model__booster: gbtree # default=gbtree
+  #### Don't optimize; higher=better, at cost of inc time & resources
+#  model__n_estimators: 200 # default=100?
+  #### Control Overfitting - controlling model complexity
+#  model__max_depth: 8 # default=6; range [0,inf]
+#  model__min_child_weight: 1 # default=1; range [0,inf]
+#  model__gamma: 0.5
+  #### Control Overfitting - add randomness to make training robust to noise
+  # lower generally better, but takes longer to train, probably dont need to
+  # optimize this, just set
+#  model__learning_rate: 0.1 #aka eta default=0.3; range=[0,1]
+#  model__subsample: 0.5
+
+
+
+# Defaults
+xgb:
+  #selector__k: [ ]
+  model__booster: gbtree # default=gbtree
+  #### Don't optimize; higher=better, at cost of inc time & resources
+  model__n_estimators: 100 # default=100?
+  #### Control Overfitting - controlling model complexity
+  model__max_depth: 6 # default=6; range [0,inf]
+  model__min_child_weight: 1 # default=1; range [0,inf]
+  model__gamma: 0 # default=0; range [0,inf]
+  #### Control Overfitting - add randomness to make training robust to noise
+  # lower generally better, but takes longer to train, probably dont need to
+  # optimize this, just set
+  model__learning_rate: 0.3 #aka eta default=0.3; range=[0,1]
+  model__subsample: 1 #default=1; range(0,1]
